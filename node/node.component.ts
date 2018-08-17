@@ -19,30 +19,35 @@ export class Node {
   @Input() set parentGuid(guid) {
     this.parentGuidValue = guid;
   }
-  // public childrenTransform;
   constructor(private nodesSrv: NodesListService,  private sanitizer: DomSanitizer){
 
   }
   @Input() set treeDiagramNode(guid) {
     this.node = this.nodesSrv.getNode(guid);
-    console.log('treeDiagramNode:', this.node);
     const parent = this.nodesSrv.getNode(this.parentGuidValue);
     try {
-      // const parent = this.nodesSrv.getNode(this.parentGuidValue);
       const grandParent = this.nodesSrv.getNode(parent.parentId);
+      const valueOfPosition = this.getIndexOfNode(this.parentGuidValue, grandParent);
+
       if (grandParent.childrenCount() > 1 && this.nodesSrv.getNode(grandParent.children.values().next().value).children.values().next().value ===
           this.nodesSrv.getNode(Array.from(grandParent.children).pop()).children.values().next().value) {
-        console.log('same child');
         // first and last parent of grandParent have same first child
         parent.childrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateY(45px)');
-        if (this.parentGuidValue && grandParent.children.values().next().value === this.parentGuidValue) {
-          // parent is first child of grandparent
-          parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateX(calc(50% + 15px))');
+
+        if (grandParent.childrenCount() % 2 === 0) {
+          parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translateX(calc(${valueOfPosition * 50}% + ${valueOfPosition * 15}px))`);
         } else {
-          parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateX(calc(-50% - 14px))');
+          // odd number of children
+          if (valueOfPosition === grandParent.childrenCount() / 2) {
+            // item is in the middle and should get translateX(0)
+            parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateX(0)');
+          } else {
+            // item in first or second half
+            parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translateX(calc(${valueOfPosition * 50}% + ${valueOfPosition * 15}px))`);
+          }
         }
+
       } else {
-        console.log('different child');
         if (this.node.isNew) {
           parent.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
           parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
@@ -52,7 +57,6 @@ export class Node {
         }
       }
     } catch (e) {
-      console.log('error');
       if (this.node.isNew) {
         parent.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
         parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
@@ -63,11 +67,29 @@ export class Node {
     }
   }
 
-  getLineToStyle(nrOfParents: number) {
-    if (nrOfParents > 1) {
-      return this.sanitizer.bypassSecurityTrustStyle('display: block !important');
+  getIndexOfNode(guid, parent) {
+    let result = -1;
+    let i = (Math.ceil(parent.childrenCount() / 2) - 1) * 2;
+    if (parent.childrenCount() % 2 === 0) {
+      // change starting value if even number of children
+      i = parent.childrenCount() - 1;
     }
-    return;
+    parent.children.forEach(child => {
+      if (child === guid) {
+        result = i;
+      }
+      i -= 2;
+    });
+
+    return result;
+  }
+
+  // getLineWidthAndLeft(parentIds: Array<string>): any {
+  getLineWidthAndLeft(nrOfParents: number): any {
+    return this.sanitizer.bypassSecurityTrustStyle(
+        `width: ${(this.node.width + 30) * (nrOfParents - 1)}px;
+        left: -${nrOfParents === 2 ? 15 : ((this.node.width / 2 + (nrOfParents % 2 === 0 ? 15 : 30)) * Math.floor(nrOfParents / 2)) + (nrOfParents % 2 === 0 ? 15 : 0)}px`
+    );
   }
 
 }

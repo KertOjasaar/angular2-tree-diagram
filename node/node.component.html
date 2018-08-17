@@ -1,5 +1,8 @@
-<div class="line-to" [style]="getLineToStyle(node.allParentIds.length)"
-     [ngClass]="{'many-parent-line': node.allParentIds.length > 0}"></div>
+<!--<div class="line-to" [style]="getLineToStyle(node.allParentIds.length)"
+     [ngClass]="{'many-parent-line': node.allParentIds.length > 0}"></div>-->
+<div class="line-to" *ngIf="node.allParentIds.length === 0"></div>
+<div class="many-parent-line" *ngIf="node.allParentIds.length > 0"
+     [style]="getLineWidthAndLeft(node.allParentIds.length)"></div>
 <div id="tree-node-{{node.guid}}"
      [ngClass]="{'tree-element-container': !0, 'tree-element-has-children': node.hasChildren()}"
      [style.width.px]="node.width"

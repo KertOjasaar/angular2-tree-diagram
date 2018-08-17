@@ -81,27 +81,25 @@ export class TreeDiagramNodesList {
         _parent.toggle(false);
       }
     }
-    if (this.getNode(origin).childrenCount() === 1) {
+    if (_origin.childrenCount() === 1) {
       _target.children.forEach(child => {
-        // console.log('child:', child);
-        this.getNode(child).children.add(this.getNode(origin).children.values().next().value);
-        this.getNode(this.getNode(origin).children.values().next().value).allParentIds.push(child);
-        // console.log('tree:', this._nodesList);
+        this.getNode(child).children.delete(origin);
+        this.getNode(child).children.add(_origin.children.values().next().value);
+        this.getNode(_origin.children.values().next().value).allParentIds.push(child);
       });
-      if (this.getNode(this.getNode(origin).children.values().next().value).allParentIds.length > 0) {
-        this.getNode(this.getNode(origin).children.values().next().value).allParentIds.push(
-            this.getNode(this.getNode(origin).children.values().next().value).parentId
+      if (this.getNode(_origin.children.values().next().value).allParentIds.length > 0) {
+        this.getNode(_origin.children.values().next().value).allParentIds.push(
+            this.getNode(_origin.children.values().next().value).parentId
         );
       }
     }
     _target.children.add(origin);
-    // console.log('target name:', _target.displayName);
 
     _origin.parentId = target;
+    _origin.allParentIds = [];
     remakeRoots && this._makeRoots();
 
     this.serialize();
-    // console.log('transfer target:', _target);
   }
 
   public getThisNodeList () {
@@ -110,11 +108,11 @@ export class TreeDiagramNodesList {
 
   public toggleSiblings (guid: string) {
     let target = this.getNode(guid);
-    // console.log('target:', target);
     if (target && target.parentId) {
       let parent = this.getNode(target.parentId);
       let toggleState = false;
-      // console.log('parent:', parent);
+
+      // TODO: Currently comparing first and last child, but should get all parents with same child.
       if (parent.childrenCount() > 1 &&
           this.getNode(this.getNode(parent.children.values().next().value).children.values().next().value) ===
           this.getNode(this.getNode(Array.from(parent.children).pop()).children.values().next().value)) {
@@ -155,11 +153,8 @@ export class TreeDiagramNodesList {
   }
 
   public destroy (guid: string) {
-    // TODO: Mõtle kogu see funktsioon uuesti läbi
     let target = this.getNode(guid);
-    console.log('destroy target:', target);
     let parent = this.getNode(target.parentId);
-    console.log('destroy parent:', parent);
     if (target.parentId) {
       parent.children.delete(guid);
       if (parent.parentId) {
@@ -181,33 +176,11 @@ export class TreeDiagramNodesList {
           theNode.allParentIds.forEach(parentId => {
             this.getNode(parentId).children.add(child);
           });
-          // theNode.allParentIds.splice(theNode.allParentIds.indexOf(guid));
-          /*if (target.parentId) {
-            const grandParent = this.getNode(target.parentId);
-            grandParent.children.forEach(targetGrandParentChild => {
-              if (targetGrandParentChild !== target.parentId) {
-                this.getNode(targetGrandParentChild).children.delete(child);
-              }
-            });
-          }*/
-        // } else {
-        //   theNode.parentId = target.parentId;
-        //   parent.children.add(theNode.guid);
-          /*if (parent.parentId) {
-            const grandParent = this.getNode(parent.parentId);
-            grandParent.children.forEach(targetGrandParentChild => {
-              if (targetGrandParentChild !== target.parentId) {
-                this.getNode(targetGrandParentChild).children.add(guid);
-              }
-            });
-          }*/
         }
       });
     }
     this._nodesList.delete(guid);
     this._makeRoots();
-    // console.warn(this.values());
-    console.log('tree:', this._nodesList.values());
   }
 
   public newNode(parentId = null) {

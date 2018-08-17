@@ -101,12 +101,19 @@
     max-height: 100%;
   }
 }
-.line-to {
+.line-to,
+.many-parent-line {
   position: absolute;
   top: -30px;
   border-top: 1px solid #dadada;
   width: calc(100% + 30px);
   display: none;
+}
+
+.many-parent-line {
+  display: block;
+  //width: calc(100% + 30px) !important;
+  //left: -15px !important;
 }
 
 .tree-node {
@@ -239,9 +246,4 @@
   .tree-text-editable{
     display: none;
   }
-}
-
-.many-parent-line {
-  width: calc(100% + 30px) !important;
-  left: -15px !important;
 }
