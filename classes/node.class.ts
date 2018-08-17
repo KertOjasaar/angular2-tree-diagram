@@ -13,6 +13,7 @@ export class TreeDiagramNode {
   public childrenTransform: any;
   public manyParentChildrenTransform: any;
   public allParentIds: Array<string> = [];
+  public isNew: boolean;
 
   constructor (props, config, public getThisNodeList: () => TreeDiagramNodesList) {
     if (!props.guid) {

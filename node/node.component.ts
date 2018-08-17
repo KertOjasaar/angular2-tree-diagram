@@ -25,27 +25,41 @@ export class Node {
   }
   @Input() set treeDiagramNode(guid) {
     this.node = this.nodesSrv.getNode(guid);
-    console.log('treeDiagramNode:', this.node.displayName);
+    console.log('treeDiagramNode:', this.node);
+    const parent = this.nodesSrv.getNode(this.parentGuidValue);
     try {
-      const parent = this.nodesSrv.getNode(this.parentGuidValue);
+      // const parent = this.nodesSrv.getNode(this.parentGuidValue);
       const grandParent = this.nodesSrv.getNode(parent.parentId);
       if (grandParent.childrenCount() > 1 && this.nodesSrv.getNode(grandParent.children.values().next().value).children.values().next().value ===
           this.nodesSrv.getNode(Array.from(grandParent.children).pop()).children.values().next().value) {
+        console.log('same child');
         // first and last parent of grandParent have same first child
         parent.childrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateY(45px)');
-        if (grandParent.children.values().next().value === this.parentGuidValue) {
+        if (this.parentGuidValue && grandParent.children.values().next().value === this.parentGuidValue) {
           // parent is first child of grandparent
           parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateX(calc(50% + 15px))');
         } else {
           parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translateX(calc(-50% - 14px))');
         }
       } else {
+        console.log('different child');
+        if (this.node.isNew) {
+          parent.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
+          parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
+        } else {
+          this.node.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
+          this.node.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
+        }
+      }
+    } catch (e) {
+      console.log('error');
+      if (this.node.isNew) {
+        parent.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
+        parent.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
+      } else {
         this.node.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
         this.node.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
       }
-    } catch (e) {
-      this.node.childrenTransform = this.sanitizer.bypassSecurityTrustStyle(`translate(calc(-50% + ${Math.round(this.node.width / 2)}px), 45px)`);
-      this.node.manyParentChildrenTransform = this.sanitizer.bypassSecurityTrustStyle('translate(0, 0)');
     }
   }
 

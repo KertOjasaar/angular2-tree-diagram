@@ -9,7 +9,8 @@ export class TreeDiagramNodesList {
     displayName: 'New node',
     children: [],
     guid: '',
-    parentId: null
+    parentId: null,
+    isNew: true
   };
 
   private uuidv4 () {
